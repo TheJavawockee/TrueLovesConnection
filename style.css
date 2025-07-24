@@ -1,0 +1,62 @@
+body {
+  font-family: 'Segoe Script', 'Comic Sans MS', cursive, sans-serif;
+  background: linear-gradient(135deg, #ffd6e8, #ffb6c1);
+  color: #880e4f;
+  text-align: center;
+  padding: 3rem 2rem;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  border: 8px solid #d81b60;        /* deeper pink/magenta border */
+  border-radius: 25px;               /* smooth rounded corners */
+  box-shadow: 0 0 25px rgba(216, 27, 96, 0.4);  /* soft pink glow */
+  max-width: 600px;                  /* nice readable width */
+  margin: 2rem auto;                 /* center horizontally with vertical margin */
+  box-sizing: border-box;
+  background-clip: padding-box;      /* so border doesn’t overlap background */
+}
+
+
+h1 {
+  font-size: 3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px #f48fb1;
+}
+
+.note {
+  font-size: 1.8rem;
+  margin-top: 2rem;
+  background: #fff0f5cc;
+  padding: 2rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(255, 105, 180, 0.4);
+  max-width: 600px;
+  line-height: 1.5;
+  color: #6a1b4d;
+  transition: background-color 0.4s ease, color 0.4s ease;
+  user-select: none;
+}
+
+.heart {
+  font-size: 4rem;
+  color: #e91e63;
+  margin-top: 3rem;
+  animation: pulse 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #ff4081);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}

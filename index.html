@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>💖 Love Notes</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.png" />
+  <link rel="stylesheet" href="style.css" />
+
+  <meta name="theme-color" content="#ffb6c1" />
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: #fff0f5;
+      color: #d63384;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+    .note {
+      font-size: 1.5rem;
+      margin-top: 2rem;
+      background: #ffe6f0;
+      padding: 1rem;
+      border-radius: 10px;
+      display: inline-block;
+      min-height: 100px; /* reserve space before JS loads */
+    }
+    .heart {
+      font-size: 3rem;
+      animation: pulse 2s infinite;
+      margin-top: 1rem;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <h1>💖 Hello, Beautiful!</h1>
+  
+  <!-- Message will be inserted here by app.js -->
+  <div class="note"></div>
+
+  <div class="heart">❤️</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
