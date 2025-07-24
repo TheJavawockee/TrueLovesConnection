@@ -4,11 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>💖 Love Notes</title>
+
+  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json" />
+
+  <!-- Favicon and iOS icons -->
   <link rel="icon" href="icon.png" />
+  <link rel="apple-touch-icon" href="icon.png" />
+
+  <!-- Theme colors -->
+  <meta name="theme-color" content="#ffb6c1" />
+
+  <!-- iOS PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
   <link rel="stylesheet" href="style.css" />
 
-  <meta name="theme-color" content="#ffb6c1" />
   <style>
     body {
       font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -27,7 +39,7 @@
       padding: 1rem;
       border-radius: 10px;
       display: inline-block;
-      min-height: 100px; /* reserve space before JS loads */
+      min-height: 100px;
     }
     .heart {
       font-size: 3rem;
@@ -50,5 +62,13 @@
   <div class="heart">❤️</div>
 
   <script src="app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ Service Worker Registered'))
+        .catch(err => console.error('❌ Service Worker Failed:', err));
+    }
+  </script>
 </body>
 </html>
