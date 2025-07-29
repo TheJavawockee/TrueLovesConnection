@@ -8,20 +8,16 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json" />
 
-  <!-- Favicon and iOS icons -->
+  <!-- Icons -->
   <link rel="icon" href="icon.png" />
   <link rel="apple-touch-icon" href="icon.png" />
 
-  <!-- Theme colors -->
+  <!-- Theme & iOS PWA Support -->
   <meta name="theme-color" content="#ffb6c1" />
-
-  <!-- iOS PWA support -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
   <link rel="stylesheet" href="style.css" />
-
-  
 
   <style>
     body {
@@ -31,9 +27,11 @@
       text-align: center;
       padding: 2rem;
     }
+
     h1 {
       font-size: 2.5rem;
     }
+
     .note {
       font-size: 1.5rem;
       margin-top: 2rem;
@@ -43,11 +41,13 @@
       display: inline-block;
       min-height: 100px;
     }
+
     .heart {
       font-size: 3rem;
       animation: pulse 2s infinite;
       margin-top: 1rem;
     }
+
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.2); }
@@ -57,21 +57,24 @@
 </head>
 <body>
 
-   <!-- Music toggle button -->
+  <!-- Music Toggle -->
   <button id="music-toggle">🎵 Play Music</button>
-
   <audio id="background-music" loop src="Romantic.mp3"></audio>
 
-  <h1>💖 Czesc kochanie!</h1>
+  <!-- Greeting -->
+  <h1>💖 Cześć kochanie!</h1>
 
-  
-  <!-- Message will be inserted here by app.js -->
+  <!-- Love Note Message -->
   <div class="note"></div>
 
+  <!-- Animated Heart -->
   <div class="heart">❤️</div>
+  <p>Tap The Heart</p>
 
+  <!-- App Logic -->
   <script src="app.js"></script>
 
+  <!-- Service Worker Registration -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')

@@ -23,21 +23,24 @@ const loveMessages = [
   "In your arms, I’ve found my home 🏠❤️"
 ];
 
+// Get a random love message
 function getRandomMessage() {
   const index = Math.floor(Math.random() * loveMessages.length);
   return loveMessages[index];
 }
 
-// 🌸 Notification permission
-if ("Notification" in window && Notification.permission !== "granted") {
-  Notification.requestPermission().then(permission => {
-    if (permission === "granted") {
-      console.log("✅ Notifications allowed");
-    }
-  });
+// Request notification permission if not already granted
+function requestNotificationPermission() {
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission().then(permission => {
+      if (permission === "granted") {
+        console.log("✅ Notifications allowed");
+      }
+    });
+  }
 }
 
-// 💌 Show a notification
+// Send a love notification with a random message
 function sendLoveNotification() {
   if (Notification.permission === "granted") {
     new Notification("💌 Just a reminder", {
@@ -47,71 +50,117 @@ function sendLoveNotification() {
   }
 }
 
-// 🔁 Daily notification (can be adjusted for testing)
-setInterval(sendLoveNotification, 86400000); // 24 hours
-
-// ✅ Register Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(() => console.log("✅ Service Worker registered"))
-    .catch(err => console.error("❌ Service Worker failed:", err));
+// Register Service Worker for PWA functionality
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log("✅ Service Worker registered"))
+      .catch(err => console.error("❌ Service Worker failed:", err));
+  }
 }
 
-// 📲 Android PWA Install Prompt
-let deferredPrompt;
+// Handle Android PWA install prompt
+function setupInstallPrompt() {
+  let deferredPrompt;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
 
-  if (!document.getElementById('install-btn')) {
-    const installBtn = document.createElement('button');
-    installBtn.id = 'install-btn';
-    installBtn.textContent = '📲 Install Love Notes';
-    installBtn.style = `
-      display: block;
-      margin: 2rem auto;
-      padding: 1rem 2rem;
-      background-color: #ff69b4;
-      color: white;
-      font-size: 1rem;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    `;
+    if (!document.getElementById('install-btn')) {
+      const installBtn = document.createElement('button');
+      installBtn.id = 'install-btn';
+      installBtn.textContent = '📲 Install Love Notes';
+      installBtn.style.cssText = `
+        display: block;
+        margin: 2rem auto;
+        padding: 1rem 2rem;
+        background-color: #ff69b4;
+        color: white;
+        font-size: 1rem;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      `;
 
-    document.body.appendChild(installBtn);
+      document.body.appendChild(installBtn);
 
-    installBtn.addEventListener('click', () => {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(choiceResult => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('✅ User accepted the A2HS prompt');
-        } else {
-          console.log('❌ User dismissed the A2HS prompt');
-        }
-        deferredPrompt = null;
-        installBtn.remove();
+      installBtn.addEventListener('click', () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choiceResult => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('✅ User accepted the A2HS prompt');
+          } else {
+            console.log('❌ User dismissed the A2HS prompt');
+          }
+          deferredPrompt = null;
+          installBtn.remove();
+        });
       });
-    });
+    }
+  });
+}
+
+// Create simple confetti animation at (x, y)
+function createConfetti(x, y) {
+  const colors = ['#ff69b4', '#ff1493', '#ff85a2', '#ffb6c1', '#ff4081'];
+  const confettiCount = 30;
+  const container = document.createElement('div');
+
+  container.style.position = 'fixed';
+  container.style.left = `${x}px`;
+  container.style.top = `${y}px`;
+  container.style.pointerEvents = 'none';
+  container.style.zIndex = '9999';
+
+  for (let i = 0; i < confettiCount; i++) {
+    const confetti = document.createElement('div');
+    confetti.style.position = 'absolute';
+    confetti.style.width = '8px';
+    confetti.style.height = '8px';
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.borderRadius = '50%';
+    confetti.style.left = '0px';
+    confetti.style.top = '0px';
+    confetti.style.opacity = '1';
+    confetti.style.animation = `confetti-fall 1.2s ease-out forwards`;
+    confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+    confetti.style.transform = `translate(${(Math.random() - 0.5) * 200}px, ${Math.random() * -200}px)`;
+
+    container.appendChild(confetti);
   }
-});
 
-// 🎵 Music toggle + daily message
+  document.body.appendChild(container);
+
+  setTimeout(() => {
+    container.remove();
+  }, 1500);
+}
+
+// Main app logic on DOM ready
 document.addEventListener("DOMContentLoaded", () => {
-  const noteDiv = document.querySelector(".note");
-  noteDiv.innerHTML = `
-    Here's your daily reminder:<br>
-    <strong>${getRandomMessage()}</strong><br>
-    You’re amazing and you matter to me every single day.
-  `;
+  let loveCount = 0;
 
+  const noteDiv = document.querySelector(".note");
+  const heart = document.querySelector(".heart");
   const musicToggle = document.getElementById('music-toggle');
   const music = document.getElementById('background-music');
 
+  // Show a daily love message on page load
+  if (noteDiv) {
+    noteDiv.innerHTML = `
+      Here's your daily reminder:<br>
+      <strong>${getRandomMessage()}</strong><br>
+      You’re amazing and you matter to me every single day.
+    `;
+  }
+
+  // Setup music play/pause toggle
   if (music && musicToggle) {
-    if (localStorage.getItem('musicPlaying') === 'true') {
+    const savedMusicPlaying = localStorage.getItem('musicPlaying') === 'true';
+
+    if (savedMusicPlaying) {
       music.play();
       musicToggle.textContent = '🔇 Pause Music';
     } else {
@@ -131,4 +180,26 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Heart tap interaction
+  if (heart && noteDiv) {
+    heart.style.cursor = 'pointer';
+
+    heart.addEventListener('click', (e) => {
+      loveCount++;
+      createConfetti(e.clientX, e.clientY);
+      noteDiv.innerHTML = `
+        This is how much I love you:<br>
+        <strong>${loveCount}</strong> ${loveCount === 1 ? 'time' : 'times'} ❤️
+      `;
+    });
+  }
+
+  // Initialize notifications and PWA install prompt
+  requestNotificationPermission();
+  registerServiceWorker();
+  setupInstallPrompt();
+
+  // Start daily notifications (every 24 hours)
+  setInterval(sendLoveNotification, 86400000);
 });

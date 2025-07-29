@@ -88,11 +88,10 @@ h1 {
 }
 
 /* Responsive tweaks for smaller screens */
-@media (max-width: 480px) {
-  body {
-    padding: 2rem 1rem;
-    border-width: 6px;
-    border-radius: 15px;
+@media (max-width: 600px) {
+  .note {
+    font-size: 1.2rem;
+    padding: 1rem;
   }
 
   h1 {
@@ -108,9 +107,12 @@ h1 {
   }
 
   .heart {
-    font-size: 3rem;
-    margin-top: 2rem;
-  }
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation; /* improve touch responsiveness */
+}
 
   #music-toggle {
     font-size: 1.2rem;
@@ -118,4 +120,21 @@ h1 {
     border-radius: 12px;
     margin-top: 1.5rem;
   }
+
+  /* Confetti animation */
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), 200px) rotate(360deg);
+  }
 }
+
+/* Make sure heart is clearly clickable */
+.heart {
+  user-select: none;
+}
+
