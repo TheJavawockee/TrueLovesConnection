@@ -1,5 +1,6 @@
+/* Base Styles */
 body {
-  font-family: 'Segoe Script', 'Comic Sans MS', cursive, sans-serif;
+  font-family: 'Segoe Script', 'Comic Sans MS', cursive, sans-serif, 'Patrick Hand', 'Dancing Script', 'cursive';
   background: linear-gradient(135deg, #ffd6e8, #ffb6c1);
   color: #880e4f;
   text-align: center;
@@ -11,16 +12,19 @@ body {
   justify-content: center;
   align-items: center;
 
-  border: 8px solid #d81b60;        /* deeper pink/magenta border */
-  border-radius: 25px;               /* smooth rounded corners */
+  border: 8px solid #d81b60;           /* deeper pink/magenta border */
+  border-radius: 25px;                  /* smooth rounded corners */
   box-shadow: 0 0 25px rgba(216, 27, 96, 0.4);  /* soft pink glow */
-  max-width: 600px;                  /* nice readable width */
-  margin: 2rem auto;                 /* center horizontally with vertical margin */
+  max-width: 600px;                     /* nice readable width */
+  margin: 2rem auto;                    /* center horizontally with vertical margin */
   box-sizing: border-box;
-  background-clip: padding-box;      /* so border doesn’t overlap background */
+  background-clip: padding-box;         /* so border doesn’t overlap background */
+
+  /* Make sure text and elements scale well on small screens */
+  word-break: break-word;
 }
 
-
+/* Headings */
 h1 {
   font-size: 3rem;
   font-weight: 600;
@@ -28,6 +32,7 @@ h1 {
   text-shadow: 2px 2px 4px #f48fb1;
 }
 
+/* Note box */
 .note {
   font-size: 1.8rem;
   margin-top: 2rem;
@@ -42,6 +47,7 @@ h1 {
   user-select: none;
 }
 
+/* Heart icon animation */
 .heart {
   font-size: 4rem;
   color: #e91e63;
@@ -59,7 +65,57 @@ h1 {
     transform: scale(1.2);
     opacity: 0.7;
   }
-  
+}
 
+/* Music toggle button styling */
+#music-toggle {
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  background-color: #ff69b4;
+  color: white;
+  font-size: 1.4rem;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(216, 27, 96, 0.5);
+  transition: background-color 0.3s ease;
+}
 
+#music-toggle:hover,
+#music-toggle:focus {
+  background-color: #d81b60;
+  outline: none;
+}
+
+/* Responsive tweaks for smaller screens */
+@media (max-width: 480px) {
+  body {
+    padding: 2rem 1rem;
+    border-width: 6px;
+    border-radius: 15px;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .note {
+    font-size: 1.4rem;
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    max-width: 100%;
+  }
+
+  .heart {
+    font-size: 3rem;
+    margin-top: 2rem;
+  }
+
+  #music-toggle {
+    font-size: 1.2rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    margin-top: 1.5rem;
+  }
 }

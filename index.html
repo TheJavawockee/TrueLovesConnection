@@ -21,6 +21,8 @@
 
   <link rel="stylesheet" href="style.css" />
 
+  
+
   <style>
     body {
       font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -54,7 +56,16 @@
   </style>
 </head>
 <body>
+
+   <!-- Music toggle button -->
+  <button id="music-toggle">🎵 Play Music</button>
+
+  <audio id="background-music" loop src="Romantic.mp3"></audio>
+
   <h1>💖 Hello, Beautiful!</h1>
+
+  <button onclick="sendLoveNotification()" style="margin-top:2rem;">💌 Send Love Notification</button>
+
   
   <!-- Message will be inserted here by app.js -->
   <div class="note"></div>
