@@ -1,4 +1,4 @@
-// List of love notes 💖
+// 💖 List of love notes
 const loveMessages = [
   "I love you more every single day 💗",
   "You make my world brighter 🌞",
@@ -9,7 +9,18 @@ const loveMessages = [
   "Just in case you forgot: I LOVE YOU! 💞",
   "You’re not alone—I'm always with you 💫",
   "You are my home 🏡",
-  "You make my heart so full 💓"
+  "You make my heart so full 💓",
+  "Together is my favourite place to be 💕",
+  "You light up my darkest days 🌟",
+  "With you, I am whole 💖",
+  "You are my forever and always 🌹",
+  "Every love story is beautiful, but ours is my favourite 📖❤️",
+  "I fall for you more every minute 💘",
+  "Your laugh is my favourite song 🎶",
+  "You are my dream come true 💫",
+  "I cherish every moment spent with you ⏳",
+  "You make my soul smile 😄💖",
+  "In your arms, I’ve found my home 🏠❤️"
 ];
 
 function getRandomMessage() {
@@ -17,16 +28,16 @@ function getRandomMessage() {
   return loveMessages[index];
 }
 
-// Notification permission
+// 🌸 Notification permission
 if ("Notification" in window && Notification.permission !== "granted") {
   Notification.requestPermission().then(permission => {
     if (permission === "granted") {
-      console.log("Notifications allowed");
+      console.log("✅ Notifications allowed");
     }
   });
 }
 
-// Show a notification with a random message
+// 💌 Show a notification
 function sendLoveNotification() {
   if (Notification.permission === "granted") {
     new Notification("💌 Just a reminder", {
@@ -36,26 +47,23 @@ function sendLoveNotification() {
   }
 }
 
-// Send one now (for demo/testing)
-sendLoveNotification();
+// 🔁 Daily notification (can be adjusted for testing)
+setInterval(sendLoveNotification, 86400000); // 24 hours
 
-// Repeat every 24 hours (86,400,000ms). For testing, you can use a smaller value like 60000.
-setInterval(sendLoveNotification, 86400000);
-
-// Register service worker
+// ✅ Register Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js')
-    .then(() => console.log("✅ Service Worker registered"));
+    .then(() => console.log("✅ Service Worker registered"))
+    .catch(err => console.error("❌ Service Worker failed:", err));
 }
 
-// 🌟 Android install prompt (PWA)
+// 📲 Android PWA Install Prompt
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
 
-  // Create and display install button only once
   if (!document.getElementById('install-btn')) {
     const installBtn = document.createElement('button');
     installBtn.id = 'install-btn';
@@ -90,6 +98,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   }
 });
 
+// 🎵 Music toggle + daily message
 document.addEventListener("DOMContentLoaded", () => {
   const noteDiv = document.querySelector(".note");
   noteDiv.innerHTML = `
@@ -102,7 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const music = document.getElementById('background-music');
 
   if (music && musicToggle) {
-    // Restore music state from localStorage
     if (localStorage.getItem('musicPlaying') === 'true') {
       music.play();
       musicToggle.textContent = '🔇 Pause Music';
@@ -115,8 +123,6 @@ document.addEventListener("DOMContentLoaded", () => {
         music.play();
         musicToggle.textContent = '🔇 Pause Music';
         localStorage.setItem('musicPlaying', 'true');
-
-        // Vibrate on user interaction if supported
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
       } else {
         music.pause();
