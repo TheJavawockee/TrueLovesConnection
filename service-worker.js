@@ -1,4 +1,5 @@
-const cacheName = 'love-notes-v1';
+const CACHE_VERSION = 'v1';
+const CACHE_NAME = `love-notes-${CACHE_VERSION}`;
 
 const assetsToCache = [
   '/',
@@ -7,13 +8,14 @@ const assetsToCache = [
   '/app.js',
   '/icon.png',
   '/manifest.json',
-  '/Romantic.mp3'
+  '/MyPatrycja.wav',
+  '/offline.html'
 ];
 
 // Install event - cache all assets
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(cacheName).then(cache => {
+    caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(assetsToCache);
     })
   );
@@ -26,7 +28,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(name => {
-          if (name !== cacheName) {
+          if (name !== CACHE_NAME) {
             return caches.delete(name);
           }
         })
@@ -40,10 +42,10 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // You can add fallback logic here if needed
-        // e.g., return caches.match('/offline.html');
-      });
+      return (
+        cachedResponse ||
+        fetch(event.request).catch(() => caches.match('/offline.html'))
+      );
     })
   );
 });
