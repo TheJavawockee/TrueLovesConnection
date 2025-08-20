@@ -1,4 +1,6 @@
-const cacheName = 'love-notes-v1';
+const CACHE_VERSION = 'v1';
+const CACHE_NAME = `love-notes-${CACHE_VERSION}`;
+
 const assetsToCache = [
   '/',
   '/index.html',
@@ -6,33 +8,30 @@ const assetsToCache = [
   '/app.js',
   '/icon.png',
   '/manifest.json',
-  '/Romantic.mp3'
+  '/MyPatrycja.wav',
+  '/offline.html'
 ];
 
 // Install event - cache all assets
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(cacheName).then(cache => {
-      return cache.addAll(assetsToCache);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(assetsToCache))
   );
-  self.skipWaiting(); // Activate immediately
+  self.skipWaiting();
 });
 
 // Activate event - remove old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
+    caches.keys().then(cacheNames =>
+      Promise.all(
         cacheNames.map(name => {
-          if (name !== cacheName) {
-            return caches.delete(name);
-          }
+          if (name !== CACHE_NAME) return caches.delete(name);
         })
-      );
-    })
+      )
+    )
   );
-  self.clients.claim(); // Take control of pages
+  self.clients.claim();
 });
 
 // Fetch event - respond from cache first, fallback to network
@@ -44,20 +43,26 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.match(event.request).then(cachedResponse => {
         if (cachedResponse) return cachedResponse;
-        return fetch(event.request).then(networkResponse => {
-          return caches.open(cacheName).then(cache => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
+        return fetch(event.request)
+          .then(networkResponse => {
+            return caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, networkResponse.clone());
+              return networkResponse;
+            });
+          })
+          .catch(() => {
+            // fallback to offline page for documents
+            if (event.request.destination === 'document') {
+              return caches.match('/offline.html');
+            }
           });
-        }).catch(() => {
-          // optional: return fallback page if network and cache fail
-          if (event.request.destination === 'document') {
-            return caches.match('/index.html');
-          }
-        });
       })
     );
   } else {
-    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    event.respondWith(
+      caches.match(event.request).then(cachedResponse => 
+        cachedResponse || fetch(event.request).catch(() => caches.match('/offline.html'))
+      )
+    );
   }
 });
