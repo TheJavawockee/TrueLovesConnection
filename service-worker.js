@@ -1,5 +1,4 @@
 const cacheName = 'love-notes-v1';
-
 const assetsToCache = [
   '/',
   '/index.html',
@@ -36,14 +35,29 @@ self.addEventListener('activate', event => {
   self.clients.claim(); // Take control of pages
 });
 
-// Fetch event - respond from cache or fetch from network
+// Fetch event - respond from cache first, fallback to network
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // You can add fallback logic here if needed
-        // e.g., return caches.match('/offline.html');
-      });
-    })
-  );
+  const requestUrl = new URL(event.request.url);
+
+  // Cache Firestore requests too
+  if (requestUrl.origin === location.origin || requestUrl.href.includes('firestore.googleapis.com')) {
+    event.respondWith(
+      caches.match(event.request).then(cachedResponse => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(event.request).then(networkResponse => {
+          return caches.open(cacheName).then(cache => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        }).catch(() => {
+          // optional: return fallback page if network and cache fail
+          if (event.request.destination === 'document') {
+            return caches.match('/index.html');
+          }
+        });
+      })
+    );
+  } else {
+    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+  }
 });

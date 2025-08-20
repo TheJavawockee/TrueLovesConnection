@@ -140,7 +140,8 @@ function createConfetti(x, y) {
 
 // Main app logic on DOM ready
 document.addEventListener("DOMContentLoaded", () => {
-  let loveCount = 0;
+  // Persistent love count
+  let loveCount = parseInt(localStorage.getItem('loveCount')) || 0;
 
   const noteDiv = document.querySelector(".note");
   const heart = document.querySelector(".heart");
@@ -187,11 +188,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     heart.addEventListener('click', (e) => {
       loveCount++;
+      localStorage.setItem('loveCount', loveCount);
       createConfetti(e.clientX, e.clientY);
       noteDiv.innerHTML = `
         This is how much I love you:<br>
         <strong>${loveCount}</strong> ${loveCount === 1 ? 'time' : 'times'} ❤️
       `;
+
+      // Optional: show a notification on each tap
+      sendLoveNotification();
     });
   }
 

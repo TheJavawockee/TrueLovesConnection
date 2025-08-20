@@ -28,31 +28,16 @@
       padding: 2rem;
     }
 
-    h1 {
-      font-size: 2.5rem;
-    }
+    h1 { font-size: 2.5rem; }
+    .note { font-size: 1.5rem; margin-top: 2rem; background: #ffe6f0; padding: 1rem; border-radius: 10px; display: inline-block; min-height: 100px; }
+    .heart { font-size: 3rem; animation: pulse 2s infinite; margin-top: 1rem; cursor: pointer; }
 
-    .note {
-      font-size: 1.5rem;
-      margin-top: 2rem;
-      background: #ffe6f0;
-      padding: 1rem;
-      border-radius: 10px;
-      display: inline-block;
-      min-height: 100px;
-    }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-    .heart {
-      font-size: 3rem;
-      animation: pulse 2s infinite;
-      margin-top: 1rem;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
+    #notes { margin-top: 2rem; max-width: 400px; margin-left:auto; margin-right:auto; text-align:left; }
+    #noteInput { width: 70%; padding: 0.5rem; margin-top: 1rem; border-radius: 5px; border: 1px solid #ccc; }
+    #sendNote { padding: 0.5rem 1rem; margin-left:0.5rem; border:none; border-radius:5px; background:#ff69b4; color:white; cursor:pointer; }
+    #install-btn { display:none; margin:2rem auto; padding:1rem 2rem; background:#ff69b4; color:white; font-size:1rem; border:none; border-radius:10px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
@@ -71,8 +56,142 @@
   <div class="heart">❤️</div>
   <p>Tap The Heart</p>
 
-  <!-- App Logic -->
-  <script src="app.js"></script>
+  <!-- Shared Notes -->
+  <h2>📔 Shared Notes</h2>
+  <ul id="notes"></ul>
+  <input id="noteInput" placeholder="Write a love note..." />
+  <button id="sendNote">💌 Send</button>
+
+  <!-- Install button (for Android PWA) -->
+  <button id="install-btn">📲 Install Love Notes</button>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWtN8SaDA6DV36zTATKP7pT4y5OllS9HQ",
+      authDomain: "true-loves-connection.firebaseapp.com",
+      projectId: "true-loves-connection",
+      storageBucket: "true-loves-connection.appspot.com",
+      messagingSenderId: "107010363938",
+      appId: "1:107010363938:web:3d44c5b25f3633d4aef07b",
+      measurementId: "G-0FT36T6PQP"
+    };
+
+    // Init Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+
+    // DOM Elements
+    const noteDiv = document.querySelector(".note");
+    const heart = document.querySelector(".heart");
+    const musicToggle = document.getElementById('music-toggle');
+    const music = document.getElementById('background-music');
+    const notesList = document.getElementById("notes");
+    const noteInput = document.getElementById("noteInput");
+    const sendNoteBtn = document.getElementById("sendNote");
+    const installBtn = document.getElementById("install-btn");
+
+    // Love Messages
+    const loveMessages = [
+      "I love you more every single day 💗",
+      "You make my world brighter 🌞",
+      "You're my favourite person in the universe 🌌",
+      "Every moment with you is magic ✨",
+      "You’re strong, beautiful, and deeply loved 💪❤️",
+      "Your smile is my sunshine ☀️",
+      "Just in case you forgot: I LOVE YOU! 💞",
+      "You’re not alone—I'm always with you 💫",
+      "You are my home 🏡",
+      "You make my heart so full 💓",
+      "Together is my favourite place to be 💕",
+      "You light up my darkest days 🌟",
+      "With you, I am whole 💖",
+      "You are my forever and always 🌹",
+      "Every love story is beautiful, but ours is my favourite 📖❤️",
+      "I fall for you more every minute 💘",
+      "Your laugh is my favourite song 🎶",
+      "You are my dream come true 💫",
+      "I cherish every moment spent with you ⏳",
+      "You make my soul smile 😄💖",
+      "In your arms, I’ve found my home 🏠❤️"
+    ];
+
+    // Helper: get random message
+    function getRandomMessage() {
+      return loveMessages[Math.floor(Math.random() * loveMessages.length)];
+    }
+
+    // Show daily message
+    noteDiv.innerHTML = `
+      Here's your daily reminder:<br>
+      <strong>${getRandomMessage()}</strong><br>
+      You’re amazing and you matter to me every single day.
+    `;
+
+    // Heart tap interaction
+    let loveCount = parseInt(localStorage.getItem('loveCount')) || 0;
+    heart.addEventListener('click', (e) => {
+      loveCount++;
+      localStorage.setItem('loveCount', loveCount);
+      noteDiv.innerHTML = `
+        This is how much I love you:<br>
+        <strong>${loveCount}</strong> ${loveCount===1?'time':'times'} ❤️
+      `;
+    });
+
+    // Music toggle
+    if (music && musicToggle) {
+      const savedMusicPlaying = localStorage.getItem('musicPlaying') === 'true';
+      if (savedMusicPlaying) music.play();
+      musicToggle.textContent = savedMusicPlaying?'🔇 Pause Music':'🎵 Play Music';
+      musicToggle.addEventListener('click', () => {
+        if (music.paused) { music.play(); musicToggle.textContent='🔇 Pause Music'; localStorage.setItem('musicPlaying','true'); }
+        else { music.pause(); musicToggle.textContent='🎵 Play Music'; localStorage.setItem('musicPlaying','false'); }
+      });
+    }
+
+    // Firebase Firestore: save note
+    sendNoteBtn.addEventListener("click", async () => {
+      const text = noteInput.value.trim();
+      if (!text) return;
+      await addDoc(collection(db,"notes"),{ text, timestamp: Date.now() });
+      noteInput.value = "";
+    });
+
+    // Firebase Firestore: listen for updates
+    const q = query(collection(db,"notes"), orderBy("timestamp"));
+    onSnapshot(q, snapshot => {
+      notesList.innerHTML = "";
+      snapshot.forEach(doc => {
+        const li = document.createElement("li");
+        li.textContent = doc.data().text;
+        notesList.appendChild(li);
+      });
+    });
+
+    // PWA install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+      console.log(choiceResult.outcome==='accepted'?'✅ Installed':'❌ Dismissed');
+    });
+  </script>
 
   <!-- Service Worker Registration -->
   <script>
