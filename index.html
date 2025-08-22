@@ -38,7 +38,7 @@
       padding: 1rem;
       border-radius: 10px;
       display: inline-block;
-      min-height: 100px;
+      min-height: 120px;
     }
 
     .heart {
@@ -58,17 +58,42 @@
 
     #music-toggle { padding:0.5rem 1rem; margin-top:1rem; border:none; border-radius:5px; background:#ff69b4; color:white; cursor:pointer; }
 
-    #install-btn { /* Style handled in app.js */ }
+    #install-btn {
+      padding: 0.5rem 1rem;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #ff1493;
+      color: white;
+      cursor: pointer;
+      display: none; /* hidden by default */
+    }
 
     button { font-size: 1rem; }
 
     ul { padding-left: 1rem; }
+
+    #daily-message {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      line-height: 1.5;
+    }
+
+    #heart-count {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    #achievement-container div {
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Install Button placeholder -->
-  <div id="install-button-placeholder"></div>
+  <!-- Install Button -->
+  <button id="install-btn">📲 Install App</button>
 
   <!-- Music Toggle -->
   <button id="music-toggle">🎵 Play Music</button>
@@ -77,7 +102,7 @@
   <!-- Greeting -->
   <h1>💖 Cześć kochanie!</h1>
 
-  <!-- Love Note Message -->
+  <!-- Daily Love Message -->
   <div class="note"></div>
 
   <!-- Animated Heart -->
@@ -101,5 +126,6 @@
         .catch(err => console.error('❌ Service Worker Failed:', err));
     }
   </script>
+
 </body>
 </html>

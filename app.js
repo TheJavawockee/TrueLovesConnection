@@ -35,19 +35,26 @@ const music = document.getElementById('background-music');
 const notesList = document.getElementById("notes");
 const noteInput = document.getElementById("noteInput");
 const sendNoteBtn = document.getElementById("sendNote");
-
-// Add achievement container
+const installBtn = document.getElementById("install-btn");
 const achievementContainer = document.createElement('div');
+
 achievementContainer.id = "achievement-container";
 achievementContainer.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999;";
 document.body.appendChild(achievementContainer);
 
 // ------------------ DAILY MESSAGE ------------------
-noteDiv.innerHTML = `
+const messageDiv = document.createElement("div");
+messageDiv.id = "daily-message";
+messageDiv.innerHTML = `
   Here's your daily reminder:<br>
   <strong>${getRandomMessage()}</strong><br>
   You’re amazing and you matter to me every single day.
 `;
+noteDiv.appendChild(messageDiv);
+
+const heartCountDiv = document.createElement("div");
+heartCountDiv.id = "heart-count";
+noteDiv.appendChild(heartCountDiv);
 
 // ------------------ HEART TAP ------------------
 const heartAchievements = [
@@ -56,57 +63,9 @@ const heartAchievements = [
   { count: 100, message: "🏆 100 taps! Ultimate heart master 💘" },
 ];
 
-// Load saved count
-let loveCount = parseInt(localStorage.getItem('loveCount')) || 0;
-
-// Update display function
-function updateHeartDisplay() {
-  noteDiv.innerHTML = `
-    This is how much I love you:<br>
-    <strong>${loveCount}</strong> ${loveCount === 1 ? 'time' : 'times'} ❤️
-  `;
-}
-
-// Function to show achievement popup
-function showAchievement(message) {
-  const popup = document.createElement("div");
-  popup.textContent = message;
-  popup.style.cssText = `
-    background: #ff69b4;
-    color: white;
-    padding: 1rem 2rem;
-    margin-top: 0.5rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.5s ease-out;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1rem;
-  `;
-
-  achievementContainer.appendChild(popup);
-
-  requestAnimationFrame(() => {
-    popup.style.opacity = 1;
-    popup.style.transform = 'translateY(0)';
-  });
-
-  setTimeout(() => {
-    popup.style.opacity = 0;
-    popup.style.transform = 'translateY(-20px)';
-    setTimeout(() => achievementContainer.removeChild(popup), 500);
-  }, 3000);
-}
-
-// Initial display
-updateHeartDisplay();
-
 // ------------------ FIREBASE ------------------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -120,7 +79,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
@@ -132,19 +90,11 @@ loginBtn.style.cssText = 'display:block;margin:1rem auto;padding:0.5rem 1rem;bac
 document.body.prepend(loginBtn);
 
 let currentUser = null;
-
-loginBtn.addEventListener('click', () => {
-  signInWithPopup(auth, provider).catch(console.error);
-});
+loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(console.error));
 
 onAuthStateChanged(auth, user => {
-  if (user) {
-    currentUser = user;
-    loginBtn.style.display = 'none';
-  } else {
-    currentUser = null;
-    loginBtn.style.display = 'block';
-  }
+  currentUser = user;
+  loginBtn.style.display = user ? 'none' : 'block';
 });
 
 // ------------------ FIRESTORE NOTES ------------------
@@ -157,61 +107,84 @@ sendNoteBtn.addEventListener("click", async () => {
     timestamp: Date.now(),
     author: currentUser.displayName
   });
-
   noteInput.value = "";
 });
 
-const q = query(collection(db, "notes"), orderBy("timestamp"));
-onSnapshot(q, snapshot => {
+const notesQuery = query(collection(db, "notes"), orderBy("timestamp"));
+onSnapshot(notesQuery, snapshot => {
   notesList.innerHTML = "";
-  snapshot.forEach(doc => {
-    const data = doc.data();
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
     const li = document.createElement("li");
     li.textContent = `${data.author || 'Anonymous'}: ${data.text}`;
     notesList.appendChild(li);
   });
 });
 
-// ------------------ GLOBAL HEART ACHIEVEMENTS ------------------
-const achievementsRef = collection(db, "achievements");
+// ------------------ HEART TAP WITH FIREBASE ------------------
+const heartCountsRef = collection(db, "heartCounts");
 
-onSnapshot(achievementsRef, snapshot => {
-  snapshot.docChanges().forEach(change => {
-    if (change.type === "added") {
-      const ach = change.doc.data();
-      showAchievement(`${ach.user}: ${ach.message}`);
+function updateHeartDisplay(localCount, otherCount) {
+  heartCountDiv.innerHTML = `
+    💖 You tapped: <strong>${localCount}</strong> times<br>
+    💞 They tapped: <strong>${otherCount}</strong> times
+  `;
+}
+
+let localLoveCount = 0;
+let partnerLoveCount = 0;
+
+onSnapshot(heartCountsRef, snapshot => {
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    if (currentUser && docSnap.id === currentUser.uid) {
+      localLoveCount = data.count;
+    } else {
+      partnerLoveCount = data.count;
     }
   });
+  updateHeartDisplay(localLoveCount, partnerLoveCount);
 });
 
-// ------------------ HEART TAP WITH GLOBAL ------------------
 heart.addEventListener('click', async () => {
-  loveCount++;
-  updateHeartDisplay();
-  localStorage.setItem('loveCount', loveCount);
+  if (!currentUser) return;
 
-  if (currentUser) {
-    // Save per-user heart count
-    const userRef = doc(db, 'heartCounts', currentUser.uid);
-    await setDoc(userRef, { count: loveCount });
+  localLoveCount++;
+  updateHeartDisplay(localLoveCount, partnerLoveCount);
 
-    // Check for achievements
-    for (const ach of heartAchievements) {
-      if (loveCount === ach.count) {
-        showAchievement(ach.message);
-        await addDoc(achievementsRef, {
-          user: currentUser.displayName,
-          message: ach.message,
-          timestamp: Date.now()
-        });
-      }
+  const userRef = doc(db, "heartCounts", currentUser.uid);
+  await setDoc(userRef, { count: localLoveCount });
+
+  heartAchievements.forEach(ach => {
+    if (localLoveCount === ach.count) {
+      const popup = document.createElement("div");
+      popup.textContent = ach.message;
+      popup.style.cssText = `
+        background: #ff69b4;
+        color: white;
+        padding: 1rem 2rem;
+        margin-top: 0.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.5s ease-out;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1rem;
+      `;
+      achievementContainer.appendChild(popup);
+      requestAnimationFrame(() => {
+        popup.style.opacity = 1;
+        popup.style.transform = 'translateY(0)';
+      });
+      setTimeout(() => {
+        popup.style.opacity = 0;
+        popup.style.transform = 'translateY(-20px)';
+        setTimeout(() => achievementContainer.removeChild(popup), 500);
+      }, 3000);
     }
-  } else {
-    // Local achievement only
-    heartAchievements.forEach(ach => {
-      if (loveCount === ach.count) showAchievement(ach.message);
-    });
-  }
+  });
 });
 
 // ------------------ MUSIC TOGGLE ------------------
@@ -238,24 +211,16 @@ if (music && musicToggle) {
 
 // ------------------ PWA INSTALL PROMPT ------------------
 let deferredPrompt;
-const installBtn = document.createElement('button');
-installBtn.textContent = '📲 Install App';
-installBtn.style.cssText = 'display:block;margin:1rem auto;padding:0.5rem 1rem;background:#ff69b4;color:white;border:none;border-radius:5px;cursor:pointer;';
-document.body.prepend(installBtn);
-installBtn.style.display = 'none';
-
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installBtn.style.display = 'block';
+  installBtn.style.display = 'inline-block';
 });
 
 installBtn.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
+  installBtn.style.display = 'none';
   deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') {
-    installBtn.style.display = 'none';
-  }
+  console.log(outcome === 'accepted' ? '✅ Installed' : '❌ Dismissed');
   deferredPrompt = null;
 });
