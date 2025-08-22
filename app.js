@@ -36,8 +36,11 @@ const notesList = document.getElementById("notes");
 const noteInput = document.getElementById("noteInput");
 const sendNoteBtn = document.getElementById("sendNote");
 const installBtn = document.getElementById("install-btn");
-const achievementContainer = document.createElement('div');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
 
+// Achievement container
+const achievementContainer = document.createElement('div');
 achievementContainer.id = "achievement-container";
 achievementContainer.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999;";
 document.body.appendChild(achievementContainer);
@@ -63,129 +66,43 @@ const heartAchievements = [
   { count: 100, message: "🏆 100 taps! Ultimate heart master 💘" },
 ];
 
-// ------------------ FIREBASE ------------------
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+let loveCount = 0; // Will be synced with Firestore
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBWtN8SaDA6DV36zTATKP7pT4y5OllS9HQ",
-  authDomain: "true-loves-connection.firebaseapp.com",
-  projectId: "true-loves-connection",
-  storageBucket: "true-loves-connection.firebasestorage.app",
-  messagingSenderId: "107010363938",
-  appId: "1:107010363938:web:3d44c5b25f3633d4aef07b",
-  measurementId: "G-0FT36T6PQP"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth();
-const provider = new GoogleAuthProvider();
-
-// ------------------ AUTH ------------------
-const loginBtn = document.createElement('button');
-loginBtn.textContent = '🔑 Sign in with Google';
-loginBtn.style.cssText = 'display:block;margin:1rem auto;padding:0.5rem 1rem;background:#ff69b4;color:white;border:none;border-radius:5px;cursor:pointer;';
-document.body.prepend(loginBtn);
-
-let currentUser = null;
-loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(console.error));
-
-onAuthStateChanged(auth, user => {
-  currentUser = user;
-  loginBtn.style.display = user ? 'none' : 'block';
-});
-
-// ------------------ FIRESTORE NOTES ------------------
-sendNoteBtn.addEventListener("click", async () => {
-  const text = noteInput.value.trim();
-  if (!text || !currentUser) return;
-
-  await addDoc(collection(db, "notes"), {
-    text,
-    timestamp: Date.now(),
-    author: currentUser.displayName
-  });
-  noteInput.value = "";
-});
-
-const notesQuery = query(collection(db, "notes"), orderBy("timestamp"));
-onSnapshot(notesQuery, snapshot => {
-  notesList.innerHTML = "";
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const li = document.createElement("li");
-    li.textContent = `${data.author || 'Anonymous'}: ${data.text}`;
-    notesList.appendChild(li);
-  });
-});
-
-// ------------------ HEART TAP WITH FIREBASE ------------------
-const heartCountsRef = collection(db, "heartCounts");
-
-function updateHeartDisplay(localCount, otherCount) {
-  heartCountDiv.innerHTML = `
-    💖 You tapped: <strong>${localCount}</strong> times<br>
-    💞 They tapped: <strong>${otherCount}</strong> times
+function showAchievement(message) {
+  const popup = document.createElement("div");
+  popup.textContent = message;
+  popup.style.cssText = `
+    background: #ff69b4;
+    color: white;
+    padding: 1rem 2rem;
+    margin-top: 0.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.5s ease-out;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
   `;
+  achievementContainer.appendChild(popup);
+  requestAnimationFrame(() => {
+    popup.style.opacity = 1;
+    popup.style.transform = 'translateY(0)';
+  });
+  setTimeout(() => {
+    popup.style.opacity = 0;
+    popup.style.transform = 'translateY(-20px)';
+    setTimeout(() => achievementContainer.removeChild(popup), 500);
+  }, 3000);
 }
 
-let localLoveCount = 0;
-let partnerLoveCount = 0;
-
-onSnapshot(heartCountsRef, snapshot => {
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    if (currentUser && docSnap.id === currentUser.uid) {
-      localLoveCount = data.count;
-    } else {
-      partnerLoveCount = data.count;
-    }
-  });
-  updateHeartDisplay(localLoveCount, partnerLoveCount);
-});
-
-heart.addEventListener('click', async () => {
-  if (!currentUser) return;
-
-  localLoveCount++;
-  updateHeartDisplay(localLoveCount, partnerLoveCount);
-
-  const userRef = doc(db, "heartCounts", currentUser.uid);
-  await setDoc(userRef, { count: localLoveCount });
-
-  heartAchievements.forEach(ach => {
-    if (localLoveCount === ach.count) {
-      const popup = document.createElement("div");
-      popup.textContent = ach.message;
-      popup.style.cssText = `
-        background: #ff69b4;
-        color: white;
-        padding: 1rem 2rem;
-        margin-top: 0.5rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        opacity: 0;
-        transform: translateY(-20px);
-        transition: all 0.5s ease-out;
-        text-align: center;
-        font-weight: bold;
-        font-size: 1rem;
-      `;
-      achievementContainer.appendChild(popup);
-      requestAnimationFrame(() => {
-        popup.style.opacity = 1;
-        popup.style.transform = 'translateY(0)';
-      });
-      setTimeout(() => {
-        popup.style.opacity = 0;
-        popup.style.transform = 'translateY(-20px)';
-        setTimeout(() => achievementContainer.removeChild(popup), 500);
-      }, 3000);
-    }
-  });
-});
+function updateHeartDisplay() {
+  heartCountDiv.innerHTML = `
+    This is how much I love you:<br>
+    <strong>${loveCount}</strong> ${loveCount === 1 ? 'time' : 'times'} ❤️
+  `;
+}
 
 // ------------------ MUSIC TOGGLE ------------------
 if (music && musicToggle) {
@@ -208,6 +125,95 @@ if (music && musicToggle) {
     }
   });
 }
+
+// ------------------ FIREBASE ------------------
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, getDoc, setDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBWtN8SaDA6DV36zTATKP7pT4y5OllS9HQ",
+  authDomain: "true-loves-connection.firebaseapp.com",
+  projectId: "true-loves-connection",
+  storageBucket: "true-loves-connection.firebasestorage.app",
+  messagingSenderId: "107010363938",
+  appId: "1:107010363938:web:3d44c5b25f3633d4aef07b",
+  measurementId: "G-0FT36T6PQP"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth();
+const provider = new GoogleAuthProvider();
+
+let currentUser = null;
+
+// ------------------ AUTH ------------------
+loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(console.error));
+logoutBtn.addEventListener('click', () => signOut(auth));
+
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  if (user) {
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+
+    // Load heart count from Firestore
+    const heartDoc = doc(db, 'heartCounts', user.uid);
+    const docSnap = await getDoc(heartDoc);
+    loveCount = docSnap.exists() ? docSnap.data().count : 0;
+    updateHeartDisplay();
+
+    // Listen to notes in real-time
+    const q = query(collection(db, "notes"), orderBy("timestamp"));
+    onSnapshot(q, snapshot => {
+      notesList.innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const li = document.createElement("li");
+        li.textContent = `${data.author || 'Anonymous'}: ${data.text}`;
+        notesList.appendChild(li);
+      });
+    });
+
+  } else {
+    loginBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+    notesList.innerHTML = "";
+    loveCount = 0;
+    updateHeartDisplay();
+  }
+});
+
+// ------------------ HEART TAP EVENT ------------------
+heart.addEventListener('click', async () => {
+  if (!currentUser) return alert('Please log in first!');
+  loveCount++;
+  updateHeartDisplay();
+
+  // Save to Firestore
+  await setDoc(doc(db, 'heartCounts', currentUser.uid), { count: loveCount });
+
+  // Achievements
+  heartAchievements.forEach(ach => {
+    if (loveCount === ach.count) showAchievement(ach.message);
+  });
+});
+
+// ------------------ FIRESTORE NOTES ------------------
+sendNoteBtn.addEventListener("click", async () => {
+  if (!currentUser) return alert('Please log in first!');
+  const text = noteInput.value.trim();
+  if (!text) return;
+
+  await addDoc(collection(db, "notes"), {
+    text,
+    timestamp: Date.now(),
+    author: currentUser.displayName
+  });
+
+  noteInput.value = "";
+});
 
 // ------------------ PWA INSTALL PROMPT ------------------
 let deferredPrompt;

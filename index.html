@@ -38,7 +38,7 @@
       padding: 1rem;
       border-radius: 10px;
       display: inline-block;
-      min-height: 120px;
+      min-height: 100px;
     }
 
     .heart {
@@ -54,43 +54,28 @@
 
     #noteInput { width: 70%; padding: 0.5rem; margin-top: 1rem; border-radius: 5px; border: 1px solid #ccc; }
 
-    #sendNote { padding: 0.5rem 1rem; margin-left:0.5rem; border:none; border-radius:5px; background:#ff69b4; color:white; cursor:pointer; }
-
-    #music-toggle { padding:0.5rem 1rem; margin-top:1rem; border:none; border-radius:5px; background:#ff69b4; color:white; cursor:pointer; }
-
-    #install-btn {
-      padding: 0.5rem 1rem;
-      margin-top: 1rem;
-      border: none;
-      border-radius: 5px;
-      background: #ff1493;
-      color: white;
-      cursor: pointer;
-      display: none; /* hidden by default */
+    #sendNote, #music-toggle, #install-btn, #login-btn, #logout-btn { 
+      padding: 0.5rem 1rem; 
+      margin: 0.5rem; 
+      border:none; 
+      border-radius:5px; 
+      background:#ff69b4; 
+      color:white; 
+      cursor:pointer; 
+      font-size:1rem;
     }
 
-    button { font-size: 1rem; }
+    #install-btn { background: #ff1493; display:none; }
+    #logout-btn { display:none; }
 
     ul { padding-left: 1rem; }
-
-    #daily-message {
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      line-height: 1.5;
-    }
-
-    #heart-count {
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-
-    #achievement-container div {
-      font-size: 1rem;
-    }
   </style>
 </head>
 <body>
+
+  <!-- Authentication Buttons -->
+  <button id="login-btn">🔑 Sign in with Google</button>
+  <button id="logout-btn">🚪 Logout</button>
 
   <!-- Install Button -->
   <button id="install-btn">📲 Install App</button>
@@ -102,7 +87,7 @@
   <!-- Greeting -->
   <h1>💖 Cześć kochanie!</h1>
 
-  <!-- Daily Love Message -->
+  <!-- Love Note Message -->
   <div class="note"></div>
 
   <!-- Animated Heart -->
@@ -115,7 +100,7 @@
   <input id="noteInput" placeholder="Write a love note..." />
   <button id="sendNote">💌 Send</button>
 
-  <!-- Firebase & App JS -->
+  <!-- Scripts -->
   <script type="module" src="app.js"></script>
 
   <!-- Service Worker Registration -->
