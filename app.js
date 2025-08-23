@@ -35,7 +35,7 @@ const music = document.getElementById('background-music');
 const notesList = document.getElementById("notes");
 const noteInput = document.getElementById("noteInput");
 const sendNoteBtn = document.getElementById("sendNote");
-const installBtn = document.getElementById("install-btn");
+const installBtn = document.getElementById('install-btn');
 const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 
@@ -55,9 +55,11 @@ messageDiv.innerHTML = `
 `;
 noteDiv.appendChild(messageDiv);
 
-const heartCountDiv = document.createElement("div");
-heartCountDiv.id = "heart-count";
-noteDiv.appendChild(heartCountDiv);
+// Heart count divs for both users
+const yourHeartDiv = document.createElement('div');
+const herHeartDiv = document.createElement('div');
+noteDiv.appendChild(yourHeartDiv);
+noteDiv.appendChild(herHeartDiv);
 
 // ------------------ HEART TAP ------------------
 const heartAchievements = [
@@ -65,8 +67,6 @@ const heartAchievements = [
   { count: 50, message: "💖 50 taps! Love legend in the making!" },
   { count: 100, message: "🏆 100 taps! Ultimate heart master 💘" },
 ];
-
-let loveCount = 0; // Will be synced with Firestore
 
 function showAchievement(message) {
   const popup = document.createElement("div");
@@ -95,13 +95,6 @@ function showAchievement(message) {
     popup.style.transform = 'translateY(-20px)';
     setTimeout(() => achievementContainer.removeChild(popup), 500);
   }, 3000);
-}
-
-function updateHeartDisplay() {
-  heartCountDiv.innerHTML = `
-    This is how much I love you:<br>
-    <strong>${loveCount}</strong> ${loveCount === 1 ? 'time' : 'times'} ❤️
-  `;
 }
 
 // ------------------ MUSIC TOGGLE ------------------
@@ -158,11 +151,8 @@ onAuthStateChanged(auth, async user => {
     loginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
 
-    // Load heart count from Firestore
-    const heartDoc = doc(db, 'heartCounts', user.uid);
-    const docSnap = await getDoc(heartDoc);
-    loveCount = docSnap.exists() ? docSnap.data().count : 0;
-    updateHeartDisplay();
+    // Listen heart counts in real-time
+    listenHeartCounts();
 
     // Listen to notes in real-time
     const q = query(collection(db, "notes"), orderBy("timestamp"));
@@ -180,27 +170,53 @@ onAuthStateChanged(auth, async user => {
     loginBtn.style.display = 'inline-block';
     logoutBtn.style.display = 'none';
     notesList.innerHTML = "";
-    loveCount = 0;
-    updateHeartDisplay();
+    yourHeartDiv.innerHTML = '';
+    herHeartDiv.innerHTML = '';
   }
 });
 
-// ------------------ HEART TAP EVENT ------------------
+// ------------------ HEART COUNTS LOGIC ------------------
+let yourCount = 0;
+let herCount = 0;
+
+function updateHeartDisplays() {
+  yourHeartDiv.innerHTML = `💖 Joe's taps: <strong>${yourCount}</strong>`;
+  herHeartDiv.innerHTML = `💖 Patrycja's  taps: <strong>${herCount}</strong>`;
+}
+
+function listenHeartCounts() {
+  if (!currentUser) return;
+
+  const yourRef = doc(db, 'heartCounts', currentUser.uid);
+  const herUid = currentUser.uid === 'JNT0LyAOCxfNuZOBaaMQ3wYqEiI3'
+    ? 'KZPXhrCbdtOsMRINlcU3JWmCUVu2'
+    : 'JNT0LyAOCxfNuZOBaaMQ3wYqEiI3';
+  const herRef = doc(db, 'heartCounts', herUid);
+
+  onSnapshot(yourRef, (docSnap) => {
+    yourCount = docSnap.exists() ? docSnap.data().count : 0;
+    updateHeartDisplays();
+  });
+
+  onSnapshot(herRef, (docSnap) => {
+    herCount = docSnap.exists() ? docSnap.data().count : 0;
+    updateHeartDisplays();
+  });
+}
+
+// Heart tap event
 heart.addEventListener('click', async () => {
   if (!currentUser) return alert('Please log in first!');
-  loveCount++;
-  updateHeartDisplay();
-
-  // Save to Firestore
-  await setDoc(doc(db, 'heartCounts', currentUser.uid), { count: loveCount });
+  yourCount++;
+  await setDoc(doc(db, 'heartCounts', currentUser.uid), { count: yourCount });
 
   // Achievements
   heartAchievements.forEach(ach => {
-    if (loveCount === ach.count) showAchievement(ach.message);
+    if (yourCount === ach.count) showAchievement(ach.message);
   });
 });
 
-// ------------------ FIRESTORE NOTES ------------------
+// ------------------ SEND NOTES ------------------
 sendNoteBtn.addEventListener("click", async () => {
   if (!currentUser) return alert('Please log in first!');
   const text = noteInput.value.trim();
