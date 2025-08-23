@@ -3,22 +3,21 @@
   "short_name": "LoveNotes",
   "description": "A special love notes app just for us 💖",
   "categories": ["entertainment", "social"],
-  "start_url": "/index.html?source=pwa",
-  "scope": "/",
+  "start_url": "index.html?source=pwa",
+  "scope": "./",
   "display": "standalone",
-  "display_override": ["fullscreen", "standalone"],
   "background_color": "#fff0f5",
   "theme_color": "#ffb6c1",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
