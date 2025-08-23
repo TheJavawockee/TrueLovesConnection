@@ -236,13 +236,18 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
+  const installBtn = document.getElementById('install-btn');
   installBtn.style.display = 'inline-block';
 });
 
-installBtn.addEventListener('click', async () => {
+document.getElementById('install-btn').addEventListener('click', async () => {
+  const installBtn = document.getElementById('install-btn');
   installBtn.style.display = 'none';
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  console.log(outcome === 'accepted' ? '✅ Installed' : '❌ Dismissed');
-  deferredPrompt = null;
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(outcome === 'accepted' ? '✅ Installed' : '❌ Dismissed');
+    deferredPrompt = null;
+  }
 });
+
