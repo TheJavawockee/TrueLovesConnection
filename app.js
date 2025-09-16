@@ -55,7 +55,7 @@ messageDiv.innerHTML = `
 `;
 noteDiv.appendChild(messageDiv);
 
-// Heart count divs for both users
+// Heart count divs
 const yourHeartDiv = document.createElement('div');
 const herHeartDiv = document.createElement('div');
 noteDiv.appendChild(yourHeartDiv);
@@ -121,8 +121,12 @@ if (music && musicToggle) {
 
 // ------------------ FIREBASE ------------------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, setDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { 
+  getFirestore, collection, addDoc, doc, getDoc, setDoc, onSnapshot, query, orderBy, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBWtN8SaDA6DV36zTATKP7pT4y5OllS9HQ",
@@ -141,17 +145,6 @@ const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 
-// ------------------ TIMESTAMP FORMATTER ------------------
-function formatTimestamp(ts) {
-  const d = new Date(ts);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const hh = String(d.getHours()).padStart(2, "0");
-  const min = String(d.getMinutes()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
-}
-
 // ------------------ AUTH ------------------
 loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(console.error));
 logoutBtn.addEventListener('click', () => signOut(auth));
@@ -162,18 +155,21 @@ onAuthStateChanged(auth, async user => {
     loginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
 
-    // Listen heart counts in real-time
+    // Listen heart counts
     listenHeartCounts();
 
-    // Listen to notes in real-time
+    // Listen to notes with timestamps
     const q = query(collection(db, "notes"), orderBy("timestamp"));
     onSnapshot(q, snapshot => {
       notesList.innerHTML = "";
       snapshot.forEach(doc => {
         const data = doc.data();
-        const time = formatTimestamp(data.timestamp);
+        let date = "⏳";
+        if (data.timestamp?.toDate) {
+          date = data.timestamp.toDate().toLocaleString();
+        }
         const li = document.createElement("li");
-        li.textContent = `[${time}] ${data.author || 'Anonymous'}: ${data.text}`;
+        li.textContent = `${data.author || 'Anonymous'}: ${data.text} (${date})`;
         notesList.appendChild(li);
       });
     });
@@ -187,7 +183,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-// ------------------ HEART COUNTS LOGIC ------------------
+// ------------------ HEART COUNTS ------------------
 let yourCount = 0;
 let herCount = 0;
 
@@ -216,13 +212,11 @@ function listenHeartCounts() {
   });
 }
 
-// Heart tap event
 heart.addEventListener('click', async () => {
   if (!currentUser) return alert('Please log in first!');
   yourCount++;
   await setDoc(doc(db, 'heartCounts', currentUser.uid), { count: yourCount });
 
-  // Achievements
   heartAchievements.forEach(ach => {
     if (yourCount === ach.count) showAchievement(ach.message);
   });
@@ -236,14 +230,14 @@ sendNoteBtn.addEventListener("click", async () => {
 
   await addDoc(collection(db, "notes"), {
     text,
-    timestamp: Date.now(),
+    timestamp: serverTimestamp(),
     author: currentUser.displayName
   });
 
   noteInput.value = "";
 });
 
-// ------------------ PWA INSTALL PROMPT ------------------
+// ------------------ PWA INSTALL ------------------
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
