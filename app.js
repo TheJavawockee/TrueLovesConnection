@@ -121,7 +121,7 @@ if (music && musicToggle) {
 
 // ------------------ FIREBASE ------------------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, getDoc, setDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, setDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -141,6 +141,17 @@ const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 
+// ------------------ TIMESTAMP FORMATTER ------------------
+function formatTimestamp(ts) {
+  const d = new Date(ts);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
 // ------------------ AUTH ------------------
 loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(console.error));
 logoutBtn.addEventListener('click', () => signOut(auth));
@@ -154,22 +165,15 @@ onAuthStateChanged(auth, async user => {
     // Listen heart counts in real-time
     listenHeartCounts();
 
-    // Listen to notes in real-time (with timestamps)
+    // Listen to notes in real-time
     const q = query(collection(db, "notes"), orderBy("timestamp"));
     onSnapshot(q, snapshot => {
       notesList.innerHTML = "";
       snapshot.forEach(doc => {
         const data = doc.data();
-
-        // Convert timestamp to readable format
-        const date = new Date(data.timestamp);
-        const formattedTime = date.toLocaleString([], {
-          dateStyle: "short",
-          timeStyle: "short"
-        });
-
+        const time = formatTimestamp(data.timestamp);
         const li = document.createElement("li");
-        li.textContent = `${data.author || 'Anonymous'} (${formattedTime}): ${data.text}`;
+        li.textContent = `[${time}] ${data.author || 'Anonymous'}: ${data.text}`;
         notesList.appendChild(li);
       });
     });
@@ -189,7 +193,7 @@ let herCount = 0;
 
 function updateHeartDisplays() {
   yourHeartDiv.innerHTML = `💖 Joe's taps: <strong>${yourCount}</strong>`;
-  herHeartDiv.innerHTML = `💖 Patrycja's  taps: <strong>${herCount}</strong>`;
+  herHeartDiv.innerHTML = `💖 Patrycja's taps: <strong>${herCount}</strong>`;
 }
 
 function listenHeartCounts() {
@@ -244,12 +248,10 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  const installBtn = document.getElementById('install-btn');
   installBtn.style.display = 'inline-block';
 });
 
-document.getElementById('install-btn').addEventListener('click', async () => {
-  const installBtn = document.getElementById('install-btn');
+installBtn.addEventListener('click', async () => {
   installBtn.style.display = 'none';
   if (deferredPrompt) {
     deferredPrompt.prompt();
