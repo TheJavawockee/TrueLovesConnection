@@ -154,14 +154,22 @@ onAuthStateChanged(auth, async user => {
     // Listen heart counts in real-time
     listenHeartCounts();
 
-    // Listen to notes in real-time
+    // Listen to notes in real-time (with timestamps)
     const q = query(collection(db, "notes"), orderBy("timestamp"));
     onSnapshot(q, snapshot => {
       notesList.innerHTML = "";
       snapshot.forEach(doc => {
         const data = doc.data();
+
+        // Convert timestamp to readable format
+        const date = new Date(data.timestamp);
+        const formattedTime = date.toLocaleString([], {
+          dateStyle: "short",
+          timeStyle: "short"
+        });
+
         const li = document.createElement("li");
-        li.textContent = `${data.author || 'Anonymous'}: ${data.text}`;
+        li.textContent = `${data.author || 'Anonymous'} (${formattedTime}): ${data.text}`;
         notesList.appendChild(li);
       });
     });
@@ -250,4 +258,3 @@ document.getElementById('install-btn').addEventListener('click', async () => {
     deferredPrompt = null;
   }
 });
-
